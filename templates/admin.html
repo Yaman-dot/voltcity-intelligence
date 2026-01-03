@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltCity | Admin Operations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    
+    <nav class="top-nav">
+        <div class="logo">
+            <i class="fa-solid fa-user-shield"></i> VoltCity <span style="color: #ef4444; margin-left:5px;">ADMIN</span>
+        </div>
+        <a href="{{ url_for('home') }}" class="nav-link">
+            <i class="fa-solid fa-house"></i> Back to Hub
+        </a>
+    </nav>
+
+    <main class="dashboard-content admin-layout">
+        
+        <section class="panel wide-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-list-check"></i> Live Session Classification</h2>
+                <span class="badge">Activity 1</span>
+            </div>
+            
+            {% if sessions %}
+            <div class="table-container">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vehicle</th>
+                            <th>Battery</th>
+                            <th>Start SoC</th>
+                            <th>Temp</th>
+                            <th>AI Prediction</th> </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sessions %}
+                        <tr>
+                            <td>#{{ loop.index }}</td>
+                            
+                            <td>
+                                {% if s['Vehicle Model_Tesla Model 3'] == 1 %} <i class="fa-solid fa-car-bolt"></i> Tesla M3
+                                {% elif s['Vehicle Model_Nissan Leaf'] == 1 %} <i class="fa-solid fa-leaf"></i> Nissan Leaf
+                                {% elif s['Vehicle Model_BMW i3'] == 1 %} <i class="fa-solid fa-car"></i> BMW i3
+                                {% elif s['Vehicle Model_Chevy Bolt'] == 1 %} <i class="fa-solid fa-bolt"></i> Chevy Bolt
+                                {% elif s['Vehicle Model_Hyundai Kona'] == 1 %} <i class="fa-solid fa-car-side"></i> Kona
+                                {% else %} <i class="fa-solid fa-car"></i> Other
+                                {% endif %}
+                            </td>
+
+                            <td>{{ s['Battery Capacity (kWh)'] }} kWh</td>
+                            <td>{{ s['State of Charge (Start %)'] }}%</td>
+                            <td>{{ s['Temperature (°C)'] }}°C</td>
+
+                            <td>
+                                {% if s['Is_Long'] == 1 %}
+                                    <span class="status-tag danger">LONG SESSION</span>
+                                {% else %}
+                                    <span class="status-tag success">NORMAL</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>No user sessions recorded yet. Go to <a href="{{ url_for('car_dashboard') }}">Driver View</a> to generate data.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-triangle-exclamation"></i> Anomaly Monitor</h2>
+                <span class="badge">Activity 4</span>
+            </div>
+            <table class="simple-table">
+                <thead>
+                    <tr>
+                        <th>Station ID</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ST-8842 (North)</td>
+                        <td class="text-danger">0.98</td>
+                        <td><span class="status-tag danger">CRITICAL</span></td>
+                    </tr>
+                    <tr>
+                        <td>ST-8841 (East)</td>
+                        <td class="text-warning">0.45</td>
+                        <td><span class="status-tag warning">Warning</span></td>
+                    </tr>
+                    <tr>
+                        <td>ST-8840 (South)</td>
+                        <td class="text-success">0.12</td>
+                        <td><span class="status-tag success">Normal</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-scale-balanced"></i> Fairness (DIR)</h2>
+                <span class="badge">Activity 2</span>
+            </div>
+            <div class="metric-visual">
+                <div class="metric-row">
+                    <p>Before Mitigation (Biased)</p>
+                    <div class="progress-bar">
+                        <div class="fill danger-bg" style="width: 40%">0.40</div>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <p>After Mitigation (Fair)</p>
+                    <div class="progress-bar">
+                        <div class="fill success-bg" style="width: 92%">0.92</div>
+                    </div>
+                </div>
+                <p class="small-text">Metric: Disparate Impact Ratio (DIR) on User Type.</p>
+            </div>
+        </section>
+
+        <section class="panel wide-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-network-wired"></i> Network Optimization (MAB)</h2>
+                <span class="badge">Activity 5</span>
+            </div>
+            <div class="mab-grid">
+                <div class="mab-card">
+                    <h3>Current Best Strategy</h3>
+                    <strong class="highlight">Dynamic Pricing (UCB)</strong>
+                    <p>Win Rate: 78%</p>
+                </div>
+                <div class="mab-card dim">
+                    <h3>Runner Up</h3>
+                    <strong>Fixed Rate (Epsilon)</strong>
+                    <p>Win Rate: 45%</p>
+                </div>
+                <div class="mab-card dim">
+                    <h3>Lowest Perf.</h3>
+                    <strong>Time-of-Use (Thompson)</strong>
+                    <p>Win Rate: 32%</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>
