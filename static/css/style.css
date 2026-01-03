@@ -200,3 +200,96 @@ input, select {
     .dashboard-content { grid-template-columns: 1fr; }
     .wide-panel { grid-column: span 1; }
 }
+/* Add to style.css */
+
+.admin-layout {
+    grid-template-columns: 1fr 1fr; /* Two columns for Admin */
+}
+
+.wide-panel {
+    grid-column: span 2; /* Take up full width */
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.badge {
+    background: #334155;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* Status Tags */
+.status-tag {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.success { color: #10b981; }
+.danger { color: #ef4444; }
+.text-warning { color: #f59e0b; }
+
+.status-tag.success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-tag.danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.status-tag.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+
+/* Progress Bars */
+.progress-bar {
+    background: #0f172a;
+    border-radius: 10px;
+    height: 20px;
+    width: 100%;
+    margin: 5px 0 15px 0;
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    text-align: right;
+    padding-right: 10px;
+    font-size: 0.8rem;
+    line-height: 20px;
+    color: white;
+    font-weight: bold;
+}
+
+.danger-bg { background: #ef4444; }
+.success-bg { background: #10b981; }
+
+/* MAB Cards */
+.mab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.mab-card {
+    background: var(--bg-dark);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--primary);
+    text-align: center;
+}
+
+.mab-card.dim {
+    border-color: var(--border);
+    opacity: 0.7;
+}
+
+.highlight {
+    color: var(--primary);
+    font-size: 1.2rem;
+    display: block;
+    margin: 10px 0;
+}
