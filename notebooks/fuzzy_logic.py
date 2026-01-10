@@ -17,7 +17,7 @@ class Fuzzy:
         self.define_mfs_degrees(self.urg, self.bud, self.cost, self.time, self.comfort_score, self.urgency, self.budget, self.predict_Cost, self.predict_Time)
         
         self.define_rules()
-        self.plot_fuzz()
+        #self.plot_defuzz()
     def define_mfs_degrees(self, urg, bud, cost, time, comfort_score, urgency, budget, predict_Cost, predict_Time):
         #input urgency
         self.urg_low = fuzz.trapmf(urg, [0, 0, 2, 4])
@@ -61,12 +61,12 @@ class Fuzzy:
         self.cl_lvl = fuzz.interp_membership(cost, self.cost_low, predict_Cost)
         self.cm_lvl = fuzz.interp_membership(cost, self.cost_medium, predict_Cost)
         self.ch_lvl = fuzz.interp_membership(cost, self.cost_high, predict_Cost)
-        print(f"""
+        """ print(f
         Budget Levels:   Low={self.bl_lvl:.3f}, Medium={self.bm_lvl:.3f}, High={self.bh_lvl:.3f}
         Urgency Levels:  Low={self.ul_lvl:.3f}, Medium={self.um_lvl:.3f}, High={self.uh_lvl:.3f}
         Time Levels:     Low={self.tl_lvl:.3f}, Medium={self.tm_lvl:.3f}, High={self.th_lvl:.3f}
         Cost Levels:     Low={self.cl_lvl:.3f}, Medium={self.cm_lvl:.3f}, High={self.ch_lvl:.3f}
-        """)
+        ) """
         return (self.bl_lvl, self.bm_lvl, self.bh_lvl, 
                 self.ul_lvl, self.um_lvl, self.uh_lvl,
                 self.tl_lvl, self.tm_lvl, self.th_lvl, 
@@ -147,7 +147,16 @@ class Fuzzy:
                 )
             )
         )
-    def plot_fuzz(self):
+    """ def plot_defuzz(self):
+        #defuzz
+        if np.all(self.aggregated == 0):
+            centroid = None
+            mom = None
+        else:
+            centroid = fuzz.defuzz(self.comfort_score, self.aggregated, "centroid")
+            mom = fuzz.defuzz(self.comfort_score, self.aggregated, "mom")
+        print(f"Comfort Score (Centroid): {None if centroid is None else round(centroid, 2)}")
+        print(f"Comfort score (mom) {None if mom is None else round(mom,2)}")
         # --- Plot base output MFs and aggregated result
         plt.figure(figsize=(7,4))
         plt.plot(self.comfort_score, self.comfort_low, '--', label='Low (base)')
@@ -159,4 +168,12 @@ class Fuzzy:
         plt.ylabel('Membership')
         plt.legend()
         plt.grid(True)
-        plt.show()
+        plt.show() """
+    def defuzz(self):
+        if np.all(self.aggregated == 0):
+            self.centroid = None
+            self.mom = None
+        else:
+            self.centroid = fuzz.defuzz(self.comfort_score, self.aggregated, "centroid")
+            self.mom = fuzz.defuzz(self.comfort_score, self.aggregated, "mom")
+        return self.mom

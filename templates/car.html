@@ -14,125 +14,154 @@
 
     <main class="dashboard-content">
         <section class="panel input-panel">
-        <h2><i class="fa-solid fa-sliders"></i> Prediction Inputs</h2>
-        <form action="/predict" method="POST">
-            
-            <h3>Vehicle & Location</h3>
-            <div class="form-group">
-                <label for="vehicle">Vehicle Model</label>
-                <select id="vehicle" name="vehicle">
-                    <option value="Tesla Model 3">Tesla Model 3</option>
-                    <option value="Nissan Leaf">Nissan Leaf</option>
-                    <option value="BMW i3">BMW i3</option>
-                    <option value="Chevy Bolt">Chevy Bolt</option>
-                    <option value="Hyundai Kona">Hyundai Kona</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="location">Location</label>
-                <select id="location" name="location">
-                    <option value="Chicago">Chicago</option>
-                    <option value="Houston">Houston</option>
-                    <option value="Los Angeles">Los Angeles</option>
-                    <option value="New York">New York</option>
-                    <option value="San Francisco">San Francisco</option>
-                </select>
-            </div>
-
-            <h3>Session Details</h3>
-            <div class="form-row" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label for="energy">Energy Needed (kWh)</label>
-                    <input type="number" step="0.1" id="energy" name="energy" value="45.5" required>
+            <h2><i class="fa-solid fa-sliders"></i> Prediction Inputs</h2>
+            <form action="/predict" method="POST">
+                
+                <h3 style="margin-top: 0; color: #00d4ff;"><i class="fa-solid fa-user-gear"></i> User Preferences</h3>
+                <div class="form-group">
+                    <label>Urgency Level: <span id="urgency-val" style="color:#00d4ff; font-weight:bold;">5</span>/10</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-size: 0.8rem; color: #888;">Low</span>
+                        <input type="range" id="urgency" name="urgency" min="0" max="10" value="5" oninput="updateSliders()" style="flex-grow: 1;">
+                        <span style="font-size: 0.8rem; color: #888;">High</span>
+                    </div>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Charging Rate (kW)</label>
-                    <input type="number" step="0.1" id="charge_rate" name="charge_rate" value="7.2" required>
-                </div>
-            </div>
 
-            <div class="form-row" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Time of Day</label>
-                    <select id = "time_day" name="time_day">
-                        <option value="2">Morning</option>
-                        <option value="0" selected>Afternoon</option>
-                        <option value="1">Evening</option>
-                        <option value="3">Night</option>
+                <div class="form-group" style="margin-bottom: 30px; border-bottom: 1px solid #444; padding-bottom: 20px;">
+                    <label>Budget Sensitivity: <span id="budget-val" style="color:#00d4ff; font-weight:bold;">5</span>/10</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-size: 0.8rem; color: #888;">Low</span>
+                        <input type="range" id="budget" name="budget" min="0" max="10" value="5" oninput="updateSliders()" style="flex-grow: 1;">
+                        <span style="font-size: 0.8rem; color: #888;">High</span>
+                    </div>
+                </div>
+                <h3>Vehicle & Location</h3>
+                <div class="form-group">
+                    <label for="vehicle">Vehicle Model</label>
+                    <select id="vehicle" name="vehicle">
+                        <option value="Tesla Model 3">Tesla Model 3</option>
+                        <option value="Nissan Leaf">Nissan Leaf</option>
+                        <option value="BMW i3">BMW i3</option>
+                        <option value="Chevy Bolt">Chevy Bolt</option>
+                        <option value="Hyundai Kona">Hyundai Kona</option>
                     </select>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Day of Week</label>
-                    <select id = "day_week" name="day_week">
-                        <option value="1">Monday</option>
-                        <option value="5">Tuesday</option>
-                        <option value="6" selected>Wednesday</option>
-                        <option value="4">Thursday</option>
-                        <option value="0">Friday</option>
-                        <option value="2">Saturday</option>
-                        <option value="3">Sunday</option>
+
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <select id="location" name="location">
+                        <option value="Chicago">Chicago</option>
+                        <option value="Houston">Houston</option>
+                        <option value="Los Angeles">Los Angeles</option>
+                        <option value="New York">New York</option>
+                        <option value="San Francisco">San Francisco</option>
                     </select>
                 </div>
-            </div>
 
-            <h3>Battery & Condition</h3>
-            <div class="form-group">
-                <label for="battery_cap">Battery Capacity (kWh)</label>
-                <input type="number" id="battery_cap" name="battery_cap" value="75">
-            </div>
+                <h3>Session Details</h3>
+                <div class="form-row" style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="energy">Energy Needed (kWh)</label>
+                        <input type="number" step="0.1" id="energy" name="energy" value="45.5" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Charging Rate (kW)</label>
+                        <input type="number" step="0.1" id="charge_rate" name="charge_rate" value="7.2" required>
+                    </div>
+                </div>
 
-            <div class="form-row" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Start SoC (%)</label>
-                    <input type="number" id = "start_soc" name="start_soc" value="20" min="0" max="100">
+                <div class="form-row" style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Time of Day</label>
+                        <select id = "time_day" name="time_day">
+                            <option value="2">Morning</option>
+                            <option value="0" selected>Afternoon</option>
+                            <option value="1">Evening</option>
+                            <option value="3">Night</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Day of Week</label>
+                        <select id = "day_week" name="day_week">
+                            <option value="1">Monday</option>
+                            <option value="5">Tuesday</option>
+                            <option value="6" selected>Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="0">Friday</option>
+                            <option value="2">Saturday</option>
+                            <option value="3">Sunday</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Distance Driven (km)</label>
-                    <input type="number" id="dist_driven" name="dist_driven" value="50">
-                </div>
-            </div>
 
-            <div class="form-row" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Temperature (°C)</label>
-                    <input type="number" id="temp" name="temp" value="25">
+                <h3>Battery & Condition</h3>
+                <div class="form-group">
+                    <label for="battery_cap">Battery Capacity (kWh)</label>
+                    <input type="number" id="battery_cap" name="battery_cap" value="75">
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Vehicle Age (Years)</label>
-                    <input type="number" step="1" id="age" name="age" value="2">
-                </div>
-            </div>
 
-            <h3>Profile Type</h3>
-            <div class="form-row" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Charger Type</label>
-                    <select id="charger_type" name="charger_type">
-                        <option value="1">Level 1</option>
-                        <option value="2" selected>Level 2</option>
-                        <option value="0">DC Fast Charging</option>
-                    </select>
+                <div class="form-row" style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Start SoC (%)</label>
+                        <input type="number" id = "start_soc" name="start_soc" value="20" min="0" max="100">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Distance Driven (km)</label>
+                        <input type="number" id="dist_driven" name="dist_driven" value="50">
+                    </div>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>User Type</label>
-                    <select id="user_type" name="user_type">
-                        <option value="1">Commuter</option>
-                        <option value="2" selected>Long-Distance Traveler</option>
-                        <option value="0">Casual Driver</option>
-                    </select>
-                </div>
-            </div>
 
-            <button type="submit" class="btn-main" style="margin-top: 20px; width: 100%;">Get Prediction</button>
-        </form>
-    </section>
+                <div class="form-row" style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Temperature (°C)</label>
+                        <input type="number" id="temp" name="temp" value="25">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Vehicle Age (Years)</label>
+                        <input type="number" step="1" id="age" name="age" value="2">
+                    </div>
+                </div>
+
+                <h3>Profile Type</h3>
+                <div class="form-row" style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Charger Type</label>
+                        <select id="charger_type" name="charger_type">
+                            <option value="1">Level 1</option>
+                            <option value="2" selected>Level 2</option>
+                            <option value="0">DC Fast Charging</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>User Type</label>
+                        <select id="user_type" name="user_type">
+                            <option value="1">Commuter</option>
+                            <option value="2" selected>Long-Distance Traveler</option>
+                            <option value="0">Casual Driver</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-main" style="margin-top: 20px; width: 100%;">Get Prediction</button>
+            </form>
+        </section>
 
         <section class="panel output-panel">
             {% if prediction %}
             <div class="result-grid">
                 <div class="card">
                     <h3>Results</h3>
+                    
+                    <div style="text-align:center; margin-bottom:15px;">
+                        <span style="background:#333; padding:5px 15px; border-radius:20px; color:#00d4ff; font-weight:bold; text-transform:uppercase; font-size:0.9rem;">
+                            {{ strategy }} Strategy
+                        </span>
+                    </div>
+
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="font-size: 3.5rem; margin: 0; line-height: 1;">{{ comfort_score }}</h1>
+                        <span style="color: #aaa; font-size: 0.9rem;">Comfort Score</span>
+                    </div>
                     <div class="stat-box">
                         <div class="stat">
                             <span class="label">Predicted Cost</span>
@@ -143,7 +172,11 @@
                             <span class="value">{{ time }} min</span>
                         </div>
                     </div>
-                </div>
+
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-style: italic; color: #ddd;">
+                        <i class="fa-solid fa-robot"></i> "{{ advice_text }}"
+                    </div>
+                    </div>
             </div>
             {% else %}
             <div class="placeholder-text">
@@ -152,5 +185,12 @@
             {% endif %}
         </section>
     </main>
+
+    <script>
+        function updateSliders() {
+            document.getElementById('urgency-val').innerText = document.getElementById('urgency').value;
+            document.getElementById('budget-val').innerText = document.getElementById('budget').value;
+        }
+    </script>
 </body>
 </html>

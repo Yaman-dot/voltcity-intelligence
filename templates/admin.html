@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VoltCity | Admin Operations</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="static\css\style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -91,21 +91,47 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>ST-8842 (North)</td>
-                        <td class="text-danger">0.98</td>
-                        <td><span class="status-tag danger">CRITICAL</span></td>
-                    </tr>
-                    <tr>
-                        <td>ST-8841 (East)</td>
-                        <td class="text-warning">0.45</td>
-                        <td><span class="status-tag warning">Warning</span></td>
-                    </tr>
-                    <tr>
-                        <td>ST-8840 (South)</td>
-                        <td class="text-success">0.12</td>
-                        <td><span class="status-tag success">Normal</span></td>
-                    </tr>
+                    <section class="panel">
+    <div class="panel-header">
+        <h2><i class="fa-solid fa-triangle-exclamation"></i> Anomaly Monitor</h2>
+        <span class="badge">Activity 4</span>
+    </div>
+
+    <table class="simple-table">
+        <thead>
+            <tr>
+                <th>Session ID</th>
+                <th>Issue Score</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if anomalies %}
+                {% for a in anomalies %}
+                <tr>
+                    <td>#{{ loop.index }} (ID)</td>
+                    
+                    <td class="text-danger" style="font-weight: bold;">
+                        {{ a.anomaly_score }}
+                    </td>
+                    
+                    <td>
+                        <span class="status-tag danger">
+                            <i class="fa-solid fa-circle-exclamation"></i> ANOMALY
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #aaa; padding: 20px;">
+                        <i class="fa-solid fa-check"></i> No anomalies detected.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</section>
                 </tbody>
             </table>
         </section>
