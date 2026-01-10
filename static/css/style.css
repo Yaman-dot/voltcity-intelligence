@@ -1,0 +1,295 @@
+:root {
+    --bg: #111827;
+    --panel: #1f2937;
+    --primary: #3b82f6;
+    --accent: #10b981;
+    --danger: #ef4444;
+    --text: #f3f4f6;
+    --text-dim: #9ca3af;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* HUB PAGE STYLES */
+.hub-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1f2937 0%, #111827 100%);
+}
+
+.hub-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.hub-header h1 {
+    font-size: 3rem;
+    color: var(--primary);
+}
+
+.role-selection {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.role-card {
+    background: var(--panel);
+    padding: 40px;
+    border-radius: 15px;
+    width: 300px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid #374151;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+}
+
+.icon-box {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+.btn-fake {
+    display: inline-block;
+    margin-top: 20px;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* DASHBOARD COMMON STYLES */
+.top-nav {
+    background: var(--panel);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #374151;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.tag {
+    font-size: 0.8rem;
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.admin-tag { background: var(--danger); }
+
+.nav-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.nav-link:hover { color: white; }
+
+.dashboard-content {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Input vs Output ratio */
+    gap: 20px;
+}
+
+.admin-layout {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* PANELS & CARDS */
+.panel {
+    background: var(--panel);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #374151;
+}
+
+.wide-panel { grid-column: span 2; }
+
+h2, h3 { margin-bottom: 15px; color: var(--text); }
+
+/* FORMS */
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; color: var(--text-dim); }
+input, select {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    border: 1px solid #374151;
+    color: white;
+    border-radius: 6px;
+}
+
+.btn-main {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-main:hover { background: #2563eb; }
+
+/* RESULTS GRID */
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.card { background: var(--bg); padding: 15px; border-radius: 8px; }
+.rl-card { grid-column: span 2; border: 1px solid var(--primary); }
+
+.stat-box { display: flex; justify-content: space-between; }
+.stat { display: flex; flex-direction: column; }
+.stat .value { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+
+.action-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--primary);
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* TABLES & METRICS */
+.simple-table { width: 100%; border-collapse: collapse; }
+.simple-table th { text-align: left; color: var(--text-dim); padding-bottom: 10px; border-bottom: 1px solid #374151; }
+.simple-table td { padding: 10px 0; }
+.row-danger { color: var(--danger); font-weight: bold; }
+
+.bar-bg { width: 100%; background: #111; height: 10px; border-radius: 5px; margin-bottom: 15px; }
+.bar-fill { height: 100%; border-radius: 5px; }
+.bad-fill { background: var(--danger); }
+.good-fill { background: var(--accent); }
+.bad { color: var(--danger); }
+.good { color: var(--accent); }
+
+@media (max-width: 768px) {
+    .dashboard-content { grid-template-columns: 1fr; }
+    .wide-panel { grid-column: span 1; }
+}
+/* Add to style.css */
+
+.admin-layout {
+    grid-template-columns: 1fr 1fr; /* Two columns for Admin */
+}
+
+.wide-panel {
+    grid-column: span 2; /* Take up full width */
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.badge {
+    background: #334155;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* Status Tags */
+.status-tag {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.success { color: #10b981; }
+.danger { color: #ef4444; }
+.text-warning { color: #f59e0b; }
+
+.status-tag.success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-tag.danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.status-tag.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+
+/* Progress Bars */
+.progress-bar {
+    background: #0f172a;
+    border-radius: 10px;
+    height: 20px;
+    width: 100%;
+    margin: 5px 0 15px 0;
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    text-align: right;
+    padding-right: 10px;
+    font-size: 0.8rem;
+    line-height: 20px;
+    color: white;
+    font-weight: bold;
+}
+
+.danger-bg { background: #ef4444; }
+.success-bg { background: #10b981; }
+
+/* MAB Cards */
+.mab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.mab-card {
+    background: var(--bg-dark);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--primary);
+    text-align: center;
+}
+
+.mab-card.dim {
+    border-color: var(--border);
+    opacity: 0.7;
+}
+
+.highlight {
+    color: var(--primary);
+    font-size: 1.2rem;
+    display: block;
+    margin: 10px 0;
+}
