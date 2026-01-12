@@ -4,12 +4,19 @@ import numpy as np
 import math, time
 import pandas as pd
 from notebooks.fuzzy_logic import Fuzzy
+import matplotlib
+matplotlib.use('Agg')  # <--- Add this line BEFORE importing pyplot
+import matplotlib.pyplot as plt
+import shap
+import joblib
+import dill
+from notebooks.RecomEngine import ActionRecommender
 #import sklearn
 
 
 app = Flask(__name__)
-
-
+recommender = ActionRecommender(data_path=r"data\preprocessed_encoded_data.pkl")
+recommender.preprocess_Train() #train the rl model.
 try:
     with open(r"saved_models\cost_regression.pkl", 'rb') as f:
         cost_model = pickle.load(f)
@@ -22,20 +29,18 @@ except Exception as e:
 
 try:
     #Cost explainers
-    with open(r"explainers\shap\Cost_Regression_Explainer.pkl", 'rb') as f:
-        cost_shap = pickle.load(f)
+    cost_shap = joblib.load(r"explainers\shap\Cost_Regression_Explainer.pkl")
     with open(r"explainers\lime\Cost_Regression_Explainer.pkl", 'rb') as f:
-        cost_lime = pickle.load(f)
+        cost_lime = dill.load(f)
+
     #time explainers
-    with open(r"explainers\shap\Time_Regression_Explainer.pkl", 'rb') as f:
-        time_shap = pickle.load(f)
+    time_shap = joblib.load(r"explainers\shap\Time_Regression_Explainer.pkl")
     with open(r"explainers\lime\Time_Regression_Explainer.pkl", 'rb') as f:
-        time_lime = pickle.load(f)
+        time_lime = dill.load(f)
     #session explainers
-    with open(r"explainers\shap\Long_Session_Explainer.pkl", 'rb') as f:
-        session_shap = pickle.load(f)
+    session_shap = joblib.load(r"explainers\shap\Long_Session_Explainer.pkl")
     with open(r"explainers\lime\Long_Session_Explainer.pkl", 'rb') as f:
-        session_lime = pickle.load(f)
+        session_lime = dill.load(f)
 except Exception as e:
     print(f"There was an Exception {e} loading explainers")
 #for the anomaly model
@@ -107,8 +112,8 @@ def predict():
     dist_driven = float(request.form['dist_driven'])
     temp = float(request.form['temp'])
     vehicle_age = int(request.form['age'])
-    
-    
+
+
     cost_regression_dict = {
         "Energy Consumed (kWh)": energy,
         "Charging Rate (kW)": charge_rate,
@@ -158,7 +163,7 @@ def predict():
     
     
     
-    ######## Long session feature history to be used in the admin panel
+    ######## Long session feature history to be used in the admin panel######################
     long_session_dict["Battery Capacity (kWh)"].append(battery_cap)
     long_session_dict["Time of Day"].append(time_of_day)
     long_session_dict["Day of Week"].append(day_of_week)
@@ -183,10 +188,47 @@ def predict():
             long_session_dict[key].append(1)
         else:
             long_session_dict[key].append(0)
-
+    #############PREDICTION#################
     cost = cost_model.predict(cost_df)
     time = time_model.predict(time_df)
-    
+    #######XAI LIME######
+    """ time_array = time_df.values
+    exp_Reg_tr = time_lime.explain_instance(
+        time_array[0],
+        lambda x: time_model.predict(pd.DataFrame(x, columns=list(time_regression_dict.keys())))
+    )
+
+    cost_array = cost_df.values
+    exp_Reg_cr = cost_lime.explain_instance(
+        cost_array[0],
+        lambda x: cost_model.predict(pd.DataFrame(x, columns=list(cost_regression_dict.keys())))
+    ) """
+    #######XAI SHAP########
+    cost_shap_values = cost_shap.shap_values(cost_df)
+    time_shap_values = time_shap.shap_values(time_df)
+    #Long Session
+    shap.plots.force(
+        base_value=cost_shap.expected_value,      # just the scalar
+        shap_values=cost_shap_values,        # already 1D
+        features=cost_df.values[0],
+        feature_names=list(cost_regression_dict.keys()),
+        matplotlib=True,
+        show=False
+    )
+    plt.savefig("static/img/cost_shap.png")
+    plt.close()
+    #Time Regression
+    shap.plots.force(
+        base_value=time_shap.expected_value,      # just the scalar
+        shap_values=time_shap_values,        # already 1D
+        features=time_df.values[0],
+        feature_names=list(time_regression_dict.keys()),
+        matplotlib=True,
+        show=False
+    )
+    plt.savefig("static/img/time_shap.png")
+    plt.close()
+    ##########FUZZY LOGIC##############
     urgency = int(request.form.get('urgency', 5))
     budget = int(request.form.get('budget', 5))
     
@@ -201,9 +243,25 @@ def predict():
         advice = "Do anything"
     else:
         advice = "idk man do whatever u want"
-
+    
+    
+    ########RECOMMENDATION AGENT##########
+    location_mapping = {
+            "Chicago": 0,
+            "Houston": 1,
+            "Los Angeles": 2,
+            "New York": 3,
+            "San Francisco": 4
+    }
+    location = request.form["location"]
+    location_idx = location_mapping[location]
+    recommendation = recommender.recommend_action(
+        battery_capacity=battery_cap,
+        location_idx=location_idx,
+        charger_type=charger_type,
+        time_of_day=time_of_day)
     prediction = True
-    return render_template("car.html", prediction=prediction, cost=cost, time=time, comfort_score = int(mom), advice_text=advice)
+    return render_template("car.html", prediction=prediction, cost=cost, time=time, comfort_score = int(mom), advice_text=advice, recommendation_text=recommendation)
 @app.route('/session')
 def admin_dashboard():
     df_history=pd.DataFrame(long_session_dict)
