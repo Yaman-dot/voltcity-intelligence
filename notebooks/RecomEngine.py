@@ -1,7 +1,9 @@
 # ============================================================
 # Reinforcement Learning Agent for Student Performance Support
 # ============================================================
-
+import os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+save_path = os.path.join(script_dir, "..", "saved_models", "rl_model.pkl")
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -30,7 +32,8 @@ class ActionRecommender:
         self.n_actions = None
     def preprocess_Train(self):
         # Discretizing Continuous features
-        self.df["Battery_Level"] = pd.qcut(self.df["Battery Capacity (kWh)"], 2, labels=[0, 1]).astype(int)
+        self.df["Battery_Level"], self.battery_bins = pd.qcut(self.df["Battery Capacity (kWh)"], 2, labels=[0, 1], retbins=True)
+        self.df["Battery_Level"] = self.df["Battery_Level"].astype(int)
         location_cols = [
             "Charging Station Location_Chicago",
             "Charging Station Location_Houston",
@@ -119,7 +122,21 @@ class ActionRecommender:
             q_history.append(self.Q.copy())
 
             epsilon = max(epsilon_min, epsilon * epsilon_decay)
+        rl_data = {
+            "Q": self.Q,
+            "battery_bins": self.battery_bins,
+            "actions": self.ACTION_NAMES,
+            "state_to_index": self.state_to_index
+        }
 
+        joblib.dump(rl_data, save_path)
+        print("RL Model and Q-Table saved to models/rl_model.pkl")
+    def load_model(self, path):
+        rl_data = joblib.load(save_path)
+        self.Q = rl_data["Q"]
+        self.battery_bins = rl_data["battery_bins"]
+        self.ACTION_NAMES = rl_data["actions"]
+        self.state_to_index = rl_data["state_to_index"]
     def recommend_action(self, battery_capacity, location_idx, charger_type, time_of_day):
         """
         Input raw student values
@@ -127,7 +144,14 @@ class ActionRecommender:
         """
 
         # Convert input to low(0) / high(1) using dataset medians
-        battery_level  = int(battery_capacity >= self.df["Battery Capacity (kWh)"].median())
+        battery_level = int(
+            pd.cut(
+                [battery_capacity],
+                bins=self.battery_bins,
+                labels=[0, 1],
+                include_lowest=True
+            )[0]
+        )
         # Create location one-hot
         location_one_hot = [0, 0, 0, 0, 0]
         location_one_hot[location_idx] = 1
@@ -148,3 +172,5 @@ class ActionRecommender:
         best_action = int(np.argmax(self.Q[state_idx]))
 
         return self.ACTION_NAMES[best_action]
+#recommender = ActionRecommender(data_path=r"data\preprocessed_encoded_data.pkl")
+#recommender.preprocess_Train()

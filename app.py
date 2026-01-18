@@ -16,7 +16,8 @@ from notebooks.RecomEngine import ActionRecommender
 
 app = Flask(__name__)
 recommender = ActionRecommender(data_path=r"data\preprocessed_encoded_data.pkl")
-recommender.preprocess_Train() #train the rl model.
+#recommender.preprocess_Train() #train the rl model.
+recommender.load_model(r"..\saved_models\rl_model.pkl")
 try:
     with open(r"saved_models\cost_regression.pkl", 'rb') as f:
         cost_model = pickle.load(f)
