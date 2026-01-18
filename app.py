@@ -15,6 +15,7 @@ from notebooks.RecomEngine import ActionRecommender
 
 
 app = Flask(__name__)
+
 recommender = ActionRecommender(data_path=r"data\preprocessed_encoded_data.pkl")
 #recommender.preprocess_Train() #train the rl model.
 recommender.load_model(r"..\saved_models\rl_model.pkl")
@@ -93,6 +94,13 @@ long_session_dict={
     "Charging Station Location_New York" : [],
     "Charging Station Location_San Francisco" : [],
 }
+df = joblib.load("data\preprocessed_encoded_data.pkl") #for the sake of populating the session page with data
+subset = df.head(5)
+for k, v in long_session_dict.items():
+    if k in subset.columns:
+        long_session_dict[k] = subset[k].tolist()
+    else:
+        pass #maybe add functions here to populate the list
 @app.route("/predict", methods=["POST"])
 def predict():
     prediction = False
@@ -270,7 +278,8 @@ def admin_dashboard():
     predicted = False
     #session_data = []
     anomaly_list = []
-    
+    results = []
+    descriptors = None
     if not df_history.empty:
         predicted = True
         long_session_cols = [
@@ -295,9 +304,22 @@ def admin_dashboard():
         #convert df to list of dictionaries
         session_data = df_history.to_dict(orient="records")
         anomaly_list = [i for i in session_data]
+        #Fuzzy Clustering
+        u_matrix, cntr, descriptors = Fuzzy.cluster(Fuzzy, 4, 2.0, 0.005, 1000, df_history, ["Energy Consumed (kWh)","Charging Rate (kW)", "Temperature (°C)"])
+        memberships = u_matrix.T
+        
+        for row in range(len(df_history)):
+            session_membership = memberships[row]
+            best_cluster = session_membership.argmax()
+            row_results = {
+                "memberships": session_membership,
+                "best_cluster": best_cluster,
+                "cluster_name": descriptors[best_cluster]
+            }
+            results.append(row_results)
     else:
         session_data = []
-    return render_template('admin.html', prediction=predicted, sessions=session_data, anomalies=anomaly_list)
+    return render_template('admin.html', prediction=predicted, sessions=session_data, anomalies=anomaly_list, analysis_results=results,cluster_descriptors=descriptors)
 
 if __name__ == "__main__":
     app.run(debug=True)

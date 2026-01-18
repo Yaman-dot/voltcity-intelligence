@@ -6,6 +6,33 @@
     <title>VoltCity | Admin Operations</title>
     <link rel="stylesheet" href="static\css\style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Inline styles for the new Fuzzy elements to ensure they work immediately */
+        .fuzzy-bar-container {
+            display: flex;
+            height: 24px;
+            width: 100%;
+            background: #f3f4f6;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        .fuzzy-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            transition: width 0.3s ease;
+        }
+        /* Color palette for clusters */
+        .c-0 { background-color: #3b82f6; } /* Blue */
+        .c-1 { background-color: #10b981; } /* Green */
+        .c-2 { background-color: #f59e0b; } /* Orange */
+        .c-3 { background-color: #ef4444; } /* Red */
+        .c-4 { background-color: #8b5cf6; } /* Purple */
+    </style>
 </head>
 <body>
     
@@ -82,56 +109,37 @@
                 <h2><i class="fa-solid fa-triangle-exclamation"></i> Anomaly Monitor</h2>
                 <span class="badge">Activity 4</span>
             </div>
+
             <table class="simple-table">
                 <thead>
                     <tr>
-                        <th>Station ID</th>
-                        <th>Score</th>
+                        <th>Session ID</th>
+                        <th>Issue Score</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <section class="panel">
-    <div class="panel-header">
-        <h2><i class="fa-solid fa-triangle-exclamation"></i> Anomaly Monitor</h2>
-        <span class="badge">Activity 4</span>
-    </div>
-
-    <table class="simple-table">
-        <thead>
-            <tr>
-                <th>Session ID</th>
-                <th>Issue Score</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if anomalies %}
-                {% for a in anomalies %}
-                <tr>
-                    <td>#{{ loop.index }} (ID)</td>
-                    
-                    <td class="text-danger" style="font-weight: bold;">
-                        {{ a.anomaly_score }}
-                    </td>
-                    
-                    <td>
-                        <span class="status-tag danger">
-                            <i class="fa-solid fa-circle-exclamation"></i> ANOMALY
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #aaa; padding: 20px;">
-                        <i class="fa-solid fa-check"></i> No anomalies detected.
-                    </td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-</section>
+                    {% if anomalies %}
+                        {% for a in anomalies %}
+                        <tr>
+                            <td>#{{ loop.index }} (ID)</td>
+                            <td class="text-danger" style="font-weight: bold;">
+                                {{ a.anomaly_score }}
+                            </td>
+                            <td>
+                                <span class="status-tag danger">
+                                    <i class="fa-solid fa-circle-exclamation"></i> ANOMALY
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #aaa; padding: 20px;">
+                                <i class="fa-solid fa-check"></i> No anomalies detected.
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </section>
@@ -156,6 +164,70 @@
                 </div>
                 <p class="small-text">Metric: Disparate Impact Ratio (DIR) on User Type.</p>
             </div>
+        </section>
+
+        <section class="panel wide-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-users-viewfinder"></i> Behavioural Clustering</h2>
+                <span class="badge">Activity 3</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 20px; padding: 10px; background: #f9fafb; border-radius: 8px;">
+                {% if cluster_descriptors %}
+                    {% for id, desc in cluster_descriptors.items() %}
+                    <div style="text-align: left;">
+                        <span class="status-tag" style="background-color: #e5e7eb; color: #374151; margin-bottom: 5px;">Cluster {{ id }}</span>
+                        <p style="font-weight: bold; color: #111827; font-size: 0.95rem; margin: 0;">
+                            {{ desc if desc else "Average Behavior" }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #666;">No clustering data available.</p>
+                {% endif %}
+            </div>
+
+            {% if analysis_results %}
+            <div class="table-container">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th>Session ID</th>
+                            <th>Dominant Profile</th>
+                            <th>Fuzzy Membership Structure</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in analysis_results %}
+                        <tr>
+                            <td>#{{ row.id }}</td>
+                            <td>
+                                <strong style="color: #4b5563;">Cluster {{ row.best_cluster }}</strong>
+                            </td>
+                            <td style="width: 50%;">
+                                <div class="fuzzy-bar-container">
+                                    {% for score in row.memberships %}
+                                        {% set width = score * 100 %}
+                                        <div class="fuzzy-segment c-{{ loop.index0 % 5 }}" 
+                                             style="width: {{ width }}%;"
+                                             title="Cluster {{ loop.index0 }}: {{ width|round(1) }}%">
+                                             {% if width > 15 %}
+                                                {{ width|round(0)|int }}%
+                                             {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Run the analysis to see clustering results.</p>
+            </div>
+            {% endif %}
         </section>
 
         <section class="panel wide-panel">
