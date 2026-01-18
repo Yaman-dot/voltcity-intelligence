@@ -1,6 +1,9 @@
 import numpy as np
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt
+from skfuzzy.cluster import cmeans
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
 class Fuzzy:
     def __init__(self, urgency, budget, predict_cost, predict_time):
         self.urg = np.linspace(0,10,100)
@@ -177,3 +180,37 @@ class Fuzzy:
             self.centroid = fuzz.defuzz(self.comfort_score, self.aggregated, "centroid")
             self.mom = fuzz.defuzz(self.comfort_score, self.aggregated, "mom")
         return self.mom
+    def cluster(self, n_cluster, m, error, maxiter, data, features):
+        scaler = MinMaxScaler() #For real world solutions, we would've already pass on scaled data, making this obsolete
+        data_scaled = pd.DataFrame(
+            scaler.fit_transform(data),
+            columns=data.columns,
+            index=data.index
+        )
+        global_averages = {}
+        for col in features: #get global averages for chosen features
+            v = data_scaled[col]
+            #print(v.head(1))
+            global_averages[col] = v.mean()
+        
+        data_scaled = data_scaled[features].T
+        
+        cntr, u, u0, d, jm, p, fpc = cmeans(
+            data_scaled, c=n_cluster, m=m, error=error, maxiter=maxiter, init=None
+        )
+        cluster_descriptors = {}
+        
+        for cluster_id, center_point in enumerate(cntr):
+            labels_list = []
+            for i, v in enumerate(center_point):
+                feature_name = features[i]
+                deviation_amount = v / global_averages[feature_name]
+                if deviation_amount > 1.2:
+                    labels_list.append(f"High {feature_name}")
+                elif deviation_amount < 0.3:
+                    labels_list.append(f"Low {feature_name}")
+            #print(f"Cluster {cluster_id}: {', '.join(labels_list)}")
+            cluster_descriptors[cluster_id] = ', '.join(labels_list)
+        print(cluster_descriptors)
+        cluster_labels = u.argmax(axis=0) #defuzz
+        return u, cntr, cluster_descriptors
