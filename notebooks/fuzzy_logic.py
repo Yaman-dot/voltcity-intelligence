@@ -4,23 +4,25 @@ import matplotlib.pyplot as plt
 from skfuzzy.cluster import cmeans
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
+import joblib
 class Fuzzy:
-    def __init__(self, urgency, budget, predict_cost, predict_time):
+    def __init__(self, df):
+        self.df = df
+        self.Scaler = MinMaxScaler()
+
         self.urg = np.linspace(0,10,100)
         self.bud = np.linspace(0,10,100)
         self.cost = np.arange(0,35.1, 0.1)
         self.time = np.arange(0,220.1, 0.1)
         self.comfort_score = np.linspace(0,100, 1001)
-
+        #self.plot_defuzz()
+    def Fuzz(self, urgency, budget, predict_cost, predict_time):
         self.urgency = urgency
         self.budget = budget
         self.predict_Cost = predict_cost
         self.predict_Time = predict_time
-        
         self.define_mfs_degrees(self.urg, self.bud, self.cost, self.time, self.comfort_score, self.urgency, self.budget, self.predict_Cost, self.predict_Time)
-        
         self.define_rules()
-        #self.plot_defuzz()
     def define_mfs_degrees(self, urg, bud, cost, time, comfort_score, urgency, budget, predict_Cost, predict_Time):
         #input urgency
         self.urg_low = fuzz.trapmf(urg, [0, 0, 2, 4])
@@ -180,23 +182,24 @@ class Fuzzy:
             self.centroid = fuzz.defuzz(self.comfort_score, self.aggregated, "centroid")
             self.mom = fuzz.defuzz(self.comfort_score, self.aggregated, "mom")
         return self.mom
-    def cluster(self, n_cluster, m, error, maxiter, data, features):
-        scaler = MinMaxScaler() #For real world solutions, we would've already pass on scaled data, making this obsolete
-        data_scaled = pd.DataFrame(
-            scaler.fit_transform(data),
-            columns=data.columns,
-            index=data.index
+    def cluster(self, n_cluster, m, error, maxiter, features):
+
+        #For real world solutions, we would've already pass on scaled data, making this obsolete
+        df_scaled = pd.DataFrame(
+            self.Scaler.fit_transform(self.df[features]),
+            columns=features, 
+            index=self.df[features].index
         )
         global_averages = {}
         for col in features: #get global averages for chosen features
-            v = data_scaled[col]
+            v = df_scaled[col]
             #print(v.head(1))
             global_averages[col] = v.mean()
         
-        data_scaled = data_scaled[features].T
+        df_scaled = df_scaled[features].T
         
         cntr, u, u0, d, jm, p, fpc = cmeans(
-            data_scaled, c=n_cluster, m=m, error=error, maxiter=maxiter, init=None
+            df_scaled, c=n_cluster, m=m, error=error, maxiter=maxiter, init=None
         )
         cluster_descriptors = {}
         
@@ -204,13 +207,39 @@ class Fuzzy:
             labels_list = []
             for i, v in enumerate(center_point):
                 feature_name = features[i]
-                deviation_amount = v / global_averages[feature_name]
+                deviation_amount = v / global_averages[feature_name] #calculate the deviation from the global average to know what type of cluster this is
                 if deviation_amount > 1.2:
                     labels_list.append(f"High {feature_name}")
                 elif deviation_amount < 0.3:
                     labels_list.append(f"Low {feature_name}")
             #print(f"Cluster {cluster_id}: {', '.join(labels_list)}")
+            if not labels_list:
+                labels_list.append("Normal Behavior")
             cluster_descriptors[cluster_id] = ', '.join(labels_list)
         print(cluster_descriptors)
-        cluster_labels = u.argmax(axis=0) #defuzz
         return u, cntr, cluster_descriptors
+    def predict_cluster(self, input, features, centers):
+        """
+        Predicts the cluster for a new input using the logic from your professor.
+        
+        Args:
+            input_values: list or array of raw values [val1, val2, ...] matching 'features' order
+            features: list of column names used in clustering
+            centers: the 'cntr' variable returned by the cluster method
+        """
+        input_df = pd.DataFrame([input], columns=features)
+        
+        norm_input = self.Scaler.transform(input_df)
+        
+        #Compute distances to centers
+        # centers shape: (n_clusters, n_features)
+        # norm_input shape: (1, n_features)
+        distances = np.linalg.norm(centers - norm_input, axis=1)
+        
+        # 4. Calculate Membership (Inverse Distance Weighting)
+        inv_distances = 1 / distances
+        memberships = inv_distances / np.sum(inv_distances)
+        
+        dominant_cluster = np.argmax(memberships)
+        
+        return dominant_cluster, memberships
