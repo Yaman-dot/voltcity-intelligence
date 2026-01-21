@@ -7,31 +7,49 @@
     <link rel="stylesheet" href="static\css\style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Inline styles for the new Fuzzy elements to ensure they work immediately */
-        .fuzzy-bar-container {
-            display: flex;
-            height: 24px;
-            width: 100%;
-            background: #f3f4f6;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #e5e7eb;
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns of data */
+            gap: 6px 15px;
         }
-        .fuzzy-segment {
+
+        .stat-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: 600;
-            transition: width 0.3s ease;
+            font-size: 0.85rem;
+            color: #374151;
         }
-        /* Color palette for clusters */
+
+        /* Fade out irrelevant clusters (less than 5%) */
+        .stat-item.faded {
+            opacity: 0.3;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            display: inline-block;
+        }
+
+        .stat-label {
+            font-weight: 500;
+            margin-right: 4px;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-family: monospace; /* Monospace for number alignment */
+        }
+
+
+        /* Your Cluster Colors */
         .c-0 { background-color: #3b82f6; } /* Blue */
         .c-1 { background-color: #10b981; } /* Green */
         .c-2 { background-color: #f59e0b; } /* Orange */
         .c-3 { background-color: #ef4444; } /* Red */
-        .c-4 { background-color: #8b5cf6; } /* Purple */
     </style>
 </head>
 <body>
@@ -85,7 +103,7 @@
                             <td>{{ s['Temperature (°C)'] }}°C</td>
 
                             <td>
-                                {% if s['Is_Long'] == 1 %}
+                                {% if s['Is_Long'] == 0 %}
                                     <span class="status-tag danger">LONG SESSION</span>
                                 {% else %}
                                     <span class="status-tag success">NORMAL</span>
@@ -103,7 +121,57 @@
                 </div>
             {% endif %}
         </section>
+        <section class="panel wide-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-network-wired"></i> Explanations for Predictions</h2>
+                <span class="badge">Activity 5</span>
+            </div>
 
+            <div class="table-container">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Session ID</th>
+                            <th style="width: 15%;">Prediction</th>
+                            <th>Top Influencing Factors (LIME)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                        <tr>
+                            <td class="compact-cell" style="font-weight: 600; color: #374151;">
+                                #{{ loop.index }}
+                            </td>
+
+                            <td class="compact-cell">
+                                {% if session['Is_Long'] == 1 %}
+                                    <span class="status-tag danger" style="font-size: 0.7rem; padding: 2px 6px;">LONG SESSION</span>
+                                {% else %}
+                                    <span class="status-tag success" style="font-size: 0.7rem; padding: 2px 6px;">NORMAL</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="compact-cell">
+                                <div class="factor-list">
+                                    {% if session.lime %}
+                                        {% for msg in session.lime %}
+                                            <div class="factor-pill">
+                                                <i class="fa-solid fa-caret-right"></i> {{ msg }}
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span style="color: #9ca3af; font-style: italic; font-size: 0.8rem;">
+                                            No strong factors detected.
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+</section>
         <section class="panel">
             <div class="panel-header">
                 <h2><i class="fa-solid fa-triangle-exclamation"></i> Anomaly Monitor</h2>
@@ -124,12 +192,18 @@
                         <tr>
                             <td>#{{ loop.index }} (ID)</td>
                             <td class="text-danger" style="font-weight: bold;">
-                                {{ a.anomaly_score }}
+                                {{ a.scores }}
                             </td>
                             <td>
+                            {% if a.is_anomaly == 1 %}
                                 <span class="status-tag danger">
                                     <i class="fa-solid fa-circle-exclamation"></i> ANOMALY
                                 </span>
+                            {% else %}
+                                <span class="status-tag success">
+                                    <i class="fa-solid fa-circle-check"></i> NORMAL
+                                </span>
+                            {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -204,20 +278,20 @@
                             <td>
                                 <strong style="color: #4b5563;">Cluster {{ row.best_cluster }}</strong>
                             </td>
-                            <td style="width: 50%;">
-                                <div class="fuzzy-bar-container">
-                                    {% for score in row.memberships %}
-                                        {% set width = score * 100 %}
-                                        <div class="fuzzy-segment c-{{ loop.index0 % 5 }}" 
-                                             style="width: {{ width }}%;"
-                                             title="Cluster {{ loop.index0 }}: {{ width|round(1) }}%">
-                                             {% if width > 15 %}
-                                                {{ width|round(0)|int }}%
-                                             {% endif %}
-                                        </div>
-                                    {% endfor %}
+                           <td style="width: 50%;">
+                            <div class="stat-grid">
+                                {% for score in row.memberships %}
+                                {% set pct = score * 100 %}
+                                
+                                <div class="stat-item {% if pct < 5 %}faded{% endif %}">
+                                    <span class="dot c-{{ loop.index0 % 5 }}"></span>
+                                    <span class="stat-label">C{{ loop.index0 }}:</span>
+                                    <span class="stat-value">{{ pct|round(1) }}%</span>
                                 </div>
-                            </td>
+                                
+                                {% endfor %}
+                            </div>
+                        </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -230,29 +304,7 @@
             {% endif %}
         </section>
 
-        <section class="panel wide-panel">
-            <div class="panel-header">
-                <h2><i class="fa-solid fa-network-wired"></i> Network Optimization (MAB)</h2>
-                <span class="badge">Activity 5</span>
-            </div>
-            <div class="mab-grid">
-                <div class="mab-card">
-                    <h3>Current Best Strategy</h3>
-                    <strong class="highlight">Dynamic Pricing (UCB)</strong>
-                    <p>Win Rate: 78%</p>
-                </div>
-                <div class="mab-card dim">
-                    <h3>Runner Up</h3>
-                    <strong>Fixed Rate (Epsilon)</strong>
-                    <p>Win Rate: 45%</p>
-                </div>
-                <div class="mab-card dim">
-                    <h3>Lowest Perf.</h3>
-                    <strong>Time-of-Use (Thompson)</strong>
-                    <p>Win Rate: 32%</p>
-                </div>
-            </div>
-        </section>
+        
 
     </main>
 </body>
