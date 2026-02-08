@@ -30,9 +30,9 @@ The agent manages session optimization through a discrete state-space model:
 ## Project Structure
 
 ```bash
-├── data/               # Processed datasets and preprocessing scripts
-├── explainers/         # XAIHandler and interpretability logic (LIME/SHAP)
-├── notebooks/          # Exploratory Data Analysis and model experiments
+├── data/               # Processed datasets
+├── explainers/         # XAIHandlers (LIME/SHAP)
+├── notebooks/          # Preprocessing, Modelling, Bias and Fairness Mitigations
 ├── saved_models/       # Serialized models and RL Q-tables
 ├── static/             # CSS and frontend assets for the dashboard
 ├── templates/          # HTML templates for admin and car interfaces
