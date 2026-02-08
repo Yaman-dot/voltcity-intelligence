@@ -293,3 +293,93 @@ input, select {
     display: block;
     margin: 10px 0;
 }
+/* --- Flat Explanation Section (No Hover/Animations) --- */
+.session-block {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    background-color: #fff;
+}
+
+.session-header-row {
+    background-color: #f9fafb; /* Matches your clustering background */
+    padding: 10px 15px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-header-row h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #374151; /* Matches your stat-item color */
+    font-weight: 600;
+}
+
+.explanation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive grid */
+    gap: 10px;
+    padding: 15px;
+}
+
+.factor-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #6b7280; /* Neutral gray accent */
+    border-radius: 4px;
+}
+
+.factor-icon {
+    color: #6b7280;
+    margin-right: 10px;
+    margin-top: 2px; /* Align with text top */
+    font-size: 0.85rem;
+}
+
+.factor-text {
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.4;
+}
+
+/* Empty State */
+.no-data-msg {
+    padding: 15px;
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+.factor-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px; /* Tight gap between items */
+}
+
+.factor-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem; /* Small text */
+    padding: 2px 8px;
+    background-color: #f9fafb; /* Light gray bg */
+    border: 1px solid #e5e7eb; /* Subtle border */
+    border-radius: 4px;
+    color: #4b5563; /* Dark gray text */
+    line-height: 1.4;
+}
+
+.factor-pill i {
+    color: #9ca3af; /* Light gray icon */
+    margin-right: 6px;
+    font-size: 0.7rem;
+}
+
+/* Ensure the table cell doesn't get too tall */
+.compact-cell {
+    padding: 8px 12px !important;
+    vertical-align: middle;
+}

@@ -4,6 +4,7 @@ import numpy as np
 import math, time
 import pandas as pd
 from notebooks.fuzzy_logic import Fuzzy
+from notebooks.XAIGen import XAIHandler
 import matplotlib
 matplotlib.use('Agg')  # <--- Add this line BEFORE importing pyplot
 import matplotlib.pyplot as plt
@@ -19,6 +20,8 @@ app = Flask(__name__)
 recommender = ActionRecommender(data_path=r"data\preprocessed_encoded_data.pkl")
 #recommender.preprocess_Train() #train the rl model.
 recommender.load_model(r"..\saved_models\rl_model.pkl")
+handler = XAIHandler()
+
 try:
     with open(r"saved_models\cost_regression.pkl", 'rb') as f:
         cost_model = pickle.load(f)
@@ -55,12 +58,7 @@ try:
 except Exception as e:
     print(f"There was an Exception {e} loading anomaly models")
 
-def prepare_inputs(form_data, model_type=None):
-    """
-    Convert the form input into the data shape our model expect
-    """
-    
-    energy = float(form_data[""])
+
 
 @app.route('/')
 def home():
@@ -95,6 +93,7 @@ long_session_dict={
     "Charging Station Location_San Francisco" : [],
 }
 df = joblib.load("data\preprocessed_encoded_data.pkl") #for the sake of populating the session page with data
+fz = Fuzzy(df)
 subset = df.head(5)
 for k, v in long_session_dict.items():
     if k in subset.columns:
@@ -201,47 +200,39 @@ def predict():
     cost = cost_model.predict(cost_df)
     time = time_model.predict(time_df)
     #######XAI LIME######
-    """ time_array = time_df.values
-    exp_Reg_tr = time_lime.explain_instance(
-        time_array[0],
-        lambda x: time_model.predict(pd.DataFrame(x, columns=list(time_regression_dict.keys())))
+    exp_cost_lime = handler.explain_lime(
+        cost_df,
+        model=cost_model, 
+        FEATURE_NAMES=cost_df.columns.tolist(),
+        explainer=cost_lime,
+        mode="regression"
     )
-
-    cost_array = cost_df.values
-    exp_Reg_cr = cost_lime.explain_instance(
-        cost_array[0],
-        lambda x: cost_model.predict(pd.DataFrame(x, columns=list(cost_regression_dict.keys())))
-    ) """
+    exp_time_lime = handler.explain_lime(
+        time_df,
+        model=time_model,
+        FEATURE_NAMES=time_df.columns.tolist(),
+        explainer=time_lime,
+        mode="regression"
+    )
     #######XAI SHAP########
-    cost_shap_values = cost_shap.shap_values(cost_df)
-    time_shap_values = time_shap.shap_values(time_df)
-    #Long Session
-    shap.plots.force(
-        base_value=cost_shap.expected_value,      # just the scalar
-        shap_values=cost_shap_values,        # already 1D
-        features=cost_df.values[0],
-        feature_names=list(cost_regression_dict.keys()),
-        matplotlib=True,
-        show=False
+    exp_cost_shap = handler.explain_shap(
+        cost_df,
+        model=cost_model, 
+        FEATURE_NAMES=cost_df.columns.tolist(),
+        explainer=cost_shap,
+        mode="regression"
     )
-    plt.savefig("static/img/cost_shap.png")
-    plt.close()
-    #Time Regression
-    shap.plots.force(
-        base_value=time_shap.expected_value,      # just the scalar
-        shap_values=time_shap_values,        # already 1D
-        features=time_df.values[0],
-        feature_names=list(time_regression_dict.keys()),
-        matplotlib=True,
-        show=False
+    exp_time_shap = handler.explain_shap(
+        time_df,
+        model=time_model,
+        FEATURE_NAMES=time_df.columns.tolist(),
+        explainer=time_shap,
+        mode="regression"
     )
-    plt.savefig("static/img/time_shap.png")
-    plt.close()
     ##########FUZZY LOGIC##############
     urgency = int(request.form.get('urgency', 5))
     budget = int(request.form.get('budget', 5))
-    
-    fz = Fuzzy(urgency, budget, cost, time)
+    fz.Fuzz(urgency, budget, cost, time)
     mom = fz.defuzz()
     advice = None
     if mom is None:
@@ -270,18 +261,35 @@ def predict():
         charger_type=charger_type,
         time_of_day=time_of_day)
     prediction = True
-    return render_template("car.html", prediction=prediction, cost=cost, time=time, comfort_score = int(mom), advice_text=advice, recommendation_text=recommendation)
+    return render_template(
+        "car.html", 
+        prediction=prediction, 
+        cost=cost, 
+        time=time, 
+        comfort_score = 
+        int(mom), 
+        advice_text=advice, 
+        recommendation_text=recommendation,
+        cost_lime=exp_cost_lime['explanation'],
+        cost_shap=exp_cost_shap['explanation'],
+        time_lime=exp_time_lime['explanation'],
+        time_shap=exp_time_shap['explanation']
+    )
+
+#Fuzzy Clustering
+u_matrix, cntr, descriptors = fz.cluster(4, 2.0, 0.005, 1000,["Energy Consumed (kWh)","Charging Rate (kW)", "Temperature (°C)"])
+
 @app.route('/session')
 def admin_dashboard():
     df_history=pd.DataFrame(long_session_dict)
-    
+    do_once = 0
     predicted = False
     #session_data = []
-    anomaly_list = []
+    anomaly_list = {}
     results = []
-    descriptors = None
     if not df_history.empty:
         predicted = True
+        df_history = df_history.apply(pd.to_numeric, errors='ignore')
         long_session_cols = [
             "Battery Capacity (kWh)", "Time of Day", "Day of Week", 
             "State of Charge (Start %)", "Distance Driven (since last charge) (km)", 
@@ -301,20 +309,45 @@ def admin_dashboard():
         
         df_history['anomaly_score'] = score_ocsvm.round(4)
         df_history['is_anomaly'] = anomaly_ocsvm
+        anomaly_list = df_history[["anomaly_score", "is_anomaly"]].to_dict(orient="records")
         #convert df to list of dictionaries
         session_data = df_history.to_dict(orient="records")
-        anomaly_list = [i for i in session_data]
-        #Fuzzy Clustering
-        u_matrix, cntr, descriptors = Fuzzy.cluster(Fuzzy, 4, 2.0, 0.005, 1000, df_history, ["Energy Consumed (kWh)","Charging Rate (kW)", "Temperature (°C)"])
-        memberships = u_matrix.T
-        
+
+
         for row in range(len(df_history)):
-            session_membership = memberships[row]
-            best_cluster = session_membership.argmax()
+            ###XAI
+            ##LIME
+            exp_cost_lime = handler.explain_lime(
+                df_history[long_session_cols].iloc[row],
+                model=session_model,
+                FEATURE_NAMES=long_session_cols,
+                explainer=session_lime,
+                mode="classification"
+            )
+            session_data[row]['lime'] = exp_cost_lime['explanation']
+            ##shap
+            exp_time_shap = handler.explain_shap(
+                df_history[long_session_cols].iloc[row],
+                model=session_model,
+                FEATURE_NAMES=long_session_cols,
+                explainer=session_shap,
+                mode="classification"
+            )
+            session_data[row]['shap'] = exp_time_shap['explanation']
+            ####CLUSTERING
+            row_data = df_history.iloc[row]
+            row_data = row_data[["Energy Consumed (kWh)","Charging Rate (kW)", "Temperature (°C)"]]
+            dominant_cluster, memberships = fz.predict_cluster(
+                input=row_data,
+                features=["Energy Consumed (kWh)","Charging Rate (kW)", "Temperature (°C)"],
+                centers=cntr
+            )
+            best_cluster = descriptors[dominant_cluster]
             row_results = {
-                "memberships": session_membership,
+                "id": row + 1,
+                "memberships": memberships,
                 "best_cluster": best_cluster,
-                "cluster_name": descriptors[best_cluster]
+                "cluster_name": best_cluster
             }
             results.append(row_results)
     else:

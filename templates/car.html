@@ -190,21 +190,72 @@
                 <span>"{{ recommendation_text }}"</span>
             </div>
 
-            {% if shap_images %}
-            <div style="margin-top: 35px; text-align:center; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 25px;">
-                <h4 style="color: #00d4ff; margin-bottom: 20px; text-transform: uppercase; font-size: 1rem; letter-spacing: 1px;">Explainability (SHAP)</h4>
-                
-                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h5 style="color: #333; margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase;">Cost Factors</h5>
-                    <img src="static\img\cost_shap.png" alt="Cost SHAP Plot" style="max-width:100%; display: block; margin: 0 auto;">
+            <div style="margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 25px;">
+                <h4 style="color: #00d4ff; text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; font-size: 1rem;">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> Transparency Report
+                </h4>
+
+                <div style="margin-bottom: 30px;">
+                    <h5 style="color: #fff; border-left: 3px solid #00d4ff; padding-left: 10px; margin-bottom: 15px;">
+                        Factors affecting <strong>COST</strong> ($)
+                    </h5>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        
+                        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; min-width: 200px;">
+                            <span style="font-size: 0.75rem; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">LIME Analysis (Local)</span>
+                            <ul style="padding-left: 20px; color: #ddd; font-size: 0.85rem; margin: 0;">
+                                {% for msg in cost_lime %}
+                                    <li style="margin-bottom: 6px;">{{ msg }}</li>
+                                {% else %}
+                                    <li style="color: #666;">No strong factors detected.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; min-width: 200px;">
+                            <span style="font-size: 0.75rem; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">SHAP Analysis (Global)</span>
+                            <ul style="padding-left: 20px; color: #ddd; font-size: 0.85rem; margin: 0;">
+                                {% for msg in cost_shap %}
+                                    <li style="margin-bottom: 6px;">{{ msg }}</li>
+                                {% else %}
+                                    <li style="color: #666;">No strong factors detected.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="background: white; padding: 15px; border-radius: 8px;">
-                    <h5 style="color: #333; margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase;">Time Factors</h5>
-                    <img src="static\img\time_shap.png" alt="Time SHAP Plot" style="max-width:100%; display: block; margin: 0 auto;">
+                <div>
+                    <h5 style="color: #fff; border-left: 3px solid #00d4ff; padding-left: 10px; margin-bottom: 15px;">
+                        Factors affecting <strong>TIME</strong> (min)
+                    </h5>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        
+                        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; min-width: 200px;">
+                            <span style="font-size: 0.75rem; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">LIME Analysis (Local)</span>
+                            <ul style="padding-left: 20px; color: #ddd; font-size: 0.85rem; margin: 0;">
+                                {% for msg in time_lime %}
+                                    <li style="margin-bottom: 6px;">{{ msg }}</li>
+                                {% else %}
+                                    <li style="color: #666;">No strong factors detected.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; min-width: 200px;">
+                            <span style="font-size: 0.75rem; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">SHAP Analysis (Global)</span>
+                            <ul style="padding-left: 20px; color: #ddd; font-size: 0.85rem; margin: 0;">
+                                {% for msg in time_shap %}
+                                    <li style="margin-bottom: 6px;">{{ msg }}</li>
+                                {% else %}
+                                    <li style="color: #666;">No strong factors detected.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+
             </div>
-            {% endif %}
         </div>
     </div>
     {% else %}
